@@ -18,5 +18,9 @@
     "mongoose": "^9.6.1",
     "nodemon": "^3.1.14",
     "react-router-dom": "^7.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.42",
+    "typescript": "5.5"
   }
 }
