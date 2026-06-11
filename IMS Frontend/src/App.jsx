@@ -4,6 +4,7 @@ import Root from './utils/Root'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard';
 import ProtectedRoutes from './utils/ProtectedRoutes'
+import Categories from './components/Categories';
 
 function App() {
 
@@ -22,7 +23,7 @@ function App() {
           />
           <Route
             path="categories"
-            element={<h1>Categories</h1>}
+            element={<Categories />}
           />
           <Route
             path="products"
