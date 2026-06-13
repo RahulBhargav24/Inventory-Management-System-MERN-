@@ -10,8 +10,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/category', categoryRoutes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(process.env.PORT, () => {
     connectDB();
     console.log('Server is running on http://localhost:3000');
 }); 
