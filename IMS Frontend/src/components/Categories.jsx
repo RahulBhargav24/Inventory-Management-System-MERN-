@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const Categories = () => {
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [categories, setCategories] = useState([]);
+  const [filteredCategories, setFilteredCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editCategory, setEditCategory] = useState(null);
 
@@ -18,6 +19,7 @@ const Categories = () => {
       });
       console.log(response.data.categories);
       setCategories(response.data.categories);
+      setFilteredCategories(response.data.categories);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -31,100 +33,110 @@ const Categories = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(editCategory) {
-          const response = await axios.put(
-      `http://localhost:3000/api/category/${editCategory}`,
-      { categoryName, categoryDescription },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("pos-token")}`,
-        },
-      }
-    );
-    if (response.data.success) {
-      setEditCategory(null);
-      setCategoryName("");
-      setCategoryDescription("");
-      alert("Category Updated successfully!");
-      fetchCategories();
-    } else {
-      console.error("Error editing category:", response.data);
-      alert("Error editing category. please try again.");
-    }
-
-  } else {
-
-    const response = await axios.post(
-      "http://localhost:3000/api/category/add",
-      { categoryName, categoryDescription },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("pos-token")}`,
-        },
-      }
-    );
-    if (response.data.success) {
-      setCategoryName("");
-      setCategoryDescription("");
-      alert("Category added successfully!");
-      fetchCategories(); // Refresh the categories list after adding a new category
-    } else {
-      console.error("Error adding category:", response.data);
-      alert("Error adding category. please try again.");
-    }
-}
-  };
-
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this category?");
-    if (confirmDelete) {
-    try {
-      const response = await axios.delete(
-        `http://localhost:3000/api/category/${id}`,
+    if (editCategory) {
+      const response = await axios.put(
+        `http://localhost:3000/api/category/${editCategory}`,
+        { categoryName, categoryDescription },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("pos-token")}`,
           },
-        }
+        },
       );
-
       if (response.data.success) {
-        alert("Category deleted successfully!");
-        fetchCategories(); // Refresh  the category list after deletion 
+        setEditCategory(null);
+        setCategoryName("");
+        setCategoryDescription("");
+        alert("Category Updated successfully!");
+        fetchCategories();
       } else {
-        console.error("Error deleting category:", response.data);
+        console.error("Error editing category:", response.data);
+        alert("Error editing category. please try again.");
+      }
+    } else {
+      const response = await axios.post(
+        "http://localhost:3000/api/category/add",
+        { categoryName, categoryDescription },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("pos-token")}`,
+          },
+        },
+      );
+      if (response.data.success) {
+        setCategoryName("");
+        setCategoryDescription("");
+        alert("Category added successfully!");
+        fetchCategories(); // Refresh the categories list after adding a new category
+      } else {
+        console.error("Error adding category:", response.data);
+        alert("Error adding category. please try again.");
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this category?",
+    );
+    if (confirmDelete) {
+      try {
+        const response = await axios.delete(
+          `http://localhost:3000/api/category/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("pos-token")}`,
+            },
+          },
+        );
+
+        if (response.data.success) {
+          alert("Category deleted successfully!");
+          fetchCategories(); // Refresh  the category list after deletion
+        } else {
+          console.error("Error deleting category:", response.data);
+          alert("Error deleting category. please try again.");
+        }
+      } catch (error) {
+        console.error("Error deleting category:", error);
         alert("Error deleting category. please try again.");
       }
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      alert("Error deleting category. please try again.");
     }
-  }
-}
+  };
 
   const handleEdit = async (category) => {
     setEditCategory(category._id);
     setCategoryName(category.categoryName);
     setCategoryDescription(category.categoryDescription);
   };
-  
+
   const handleCancel = async (category) => {
     setEditCategory(null);
     setCategoryName("");
     setCategoryDescription("");
   };
 
-  if (loading) return <div>Loading ....</div>
+  if (loading) return <div>Loading ....</div>;
+
+  const handleSearch = (e) => {
+    setFilteredCategories(
+      categories.filter((category) =>
+        category.categoryName
+          .toLowerCase()
+          .includes(e.target.value.toLowerCase()),
+      ),
+    );
+  };
 
   return (
-    <div className='p-4'>
+    <div className="p-4">
       <h1 className="text-2xl font-bold mb-8">Category Management</h1>
-
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="lg:w-1/3">
           <div className="bg-white shadow-md rounded-lg p-4">
-            <h2 className="text-center text-xl font-bold mb-4">{editCategory ? "Edit Category" : "Add Category"}</h2>
+            <h2 className="text-center text-xl font-bold mb-4">
+              {editCategory ? "Edit Category" : "Add Category"}
+            </h2>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <input
@@ -145,14 +157,13 @@ const Categories = () => {
                 />
               </div>
               <div className="flex space-x-2">
-              <button
-                type="submit"
-                className="w-full mt-2 rounded-md bg-green-500 text-white p-3 cursor-pointer hover:bg-green-600"
-              >
-                {editCategory ? "Save Changes" : "Add Category"}
-              </button>
-              {
-                editCategory && (
+                <button
+                  type="submit"
+                  className="w-full mt-2 rounded-md bg-green-500 text-white p-3 cursor-pointer hover:bg-green-600"
+                >
+                  {editCategory ? "Save Changes" : "Add Category"}
+                </button>
+                {editCategory && (
                   <button
                     type="button"
                     className="w-full mt-2 rounded-md bg-red-500 text-white p-3 cursor-pointer hover:bg-red-600"
@@ -160,14 +171,21 @@ const Categories = () => {
                   >
                     Cancel
                   </button>
-                )
-              }
+                )}
               </div>
             </form>
           </div>
         </div>
         <div className="lg:w-2/3">
           <div className="bg-white shadow-md rounded-lg p-4">
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search Category"
+                className="border p-2 rounded-md w-full"
+                onChange={handleSearch}
+              />
+            </div>
             <table className="w-full border-collapse border border-gray-200">
               <thead>
                 <tr className="bg-gray-100">
@@ -177,17 +195,23 @@ const Categories = () => {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((category, index) => (
+                {filteredCategories.map((category, index) => (
                   <tr key={index}>
                     <td className="border border-gray-200 p-2">{index + 1}</td>
-                    <td className="border border-gray-200 p-2">{category.categoryName}</td>
                     <td className="border border-gray-200 p-2">
-                      <button className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 mr-2"
-                        onClick={() => handleEdit(category)}>
+                      {category.categoryName}
+                    </td>
+                    <td className="border border-gray-200 p-2">
+                      <button
+                        className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 mr-2"
+                        onClick={() => handleEdit(category)}
+                      >
                         Edit
                       </button>
-                      <button className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
-                        onClick={() => handleDelete(category._id)}>
+                      <button
+                        className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
+                        onClick={() => handleDelete(category._id)}
+                      >
                         Delete
                       </button>
                     </td>
@@ -195,6 +219,9 @@ const Categories = () => {
                 ))}
               </tbody>
             </table>
+            {filteredCategories.length === 0 && (
+              <div className="text-center mt-4">No categories found</div>
+            )}
           </div>
         </div>
       </div>
